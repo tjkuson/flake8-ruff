@@ -18,7 +18,7 @@ pip install flake8-ruff
 ```
 
 Then follow the instructions on the [Flake8 documentation](https://flake8.pycqa.org/en/latest/index.html)
-to enable the plugin (the checks are under the `RUF` namespace).
+to enable the plugin.
 
 ## Checks
 
@@ -69,3 +69,5 @@ with
 ```python
 dict.fromkeys(keys)
 ```
+
+Derived from [unnecessary-dict-comprehension-for-iterable (RUF025)](https://docs.astral.sh/ruff/rules/unnecessary-dict-comprehension-for-iterable/).
