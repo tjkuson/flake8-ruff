@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flake8-ruff"
-version = "0.1.1"
+version = "0.2.0"
 description = "A Flake8 plugin that implements miscellaneous checks from Ruff."
 license = "MIT"
 authors = ["Tom Kuson <mail@tjkuson.me>"]
