@@ -1,5 +1,7 @@
 # flake8-ruff
 
+[![image](https://img.shields.io/pypi/v/flake8-ruff.svg)](https://pypi.python.org/pypi/flake8-ruff)
+
 A Flake8 plugin that implements miscellaneous checks from [Ruff](https://github.com/astral-sh/ruff).
 
 Specifically, this plugin implements checks that are under the `RUF` category
@@ -40,6 +42,8 @@ with
 result = foo()
 assert result is not None
 ```
+
+Derived from [assignment-in-assert (RUF018)](https://docs.astral.sh/ruff/rules/assignment-in-assert/).
 
 ### RUF020 `typing.Never | T` is equivalent to `T`
 
