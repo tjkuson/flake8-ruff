@@ -11,6 +11,14 @@ def run(source: str) -> list[tuple[int, int, str]]:
     return [(line, col, msg) for (line, col, msg, type_) in Plugin(tree).run()]
 
 
+def test_ruf018() -> None:
+    src = """\
+    assert (x := 1), "message"
+    """
+    expected = [(1, 0, "RUF018 Avoid assignment expressions in assert statements")]
+    assert expected == run(src)
+
+
 def test_ruf020_never() -> None:
     src = """\
     from typing import Never

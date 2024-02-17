@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import typing
 
+RUF018 = "RUF018 Avoid assignment expressions in assert statements"
 RUF020 = "RUF020 {} | T is equivalent to T"
 RUF025 = "RUF025 Unnecessary dict comprehension for iterable; use dict.fromkeys instead"
 
@@ -75,6 +76,14 @@ class Visitor(ast.NodeVisitor):
                             elt.col_offset,
                             RUF020.format(never_like),
                         ))
+
+    def visit_Assert(self, node: ast.Assert) -> None:
+        if isinstance(node.test, ast.NamedExpr):
+            self.errors.append((
+                node.lineno,
+                node.col_offset,
+                RUF018,
+            ))
 
 
 class Plugin:

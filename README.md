@@ -22,6 +22,25 @@ to enable the plugin.
 
 ## Checks
 
+### RUF018 Avoid assignment expressions in `assert` statements
+
+Checks for named assignment expressions in `assert` statements. When Python is
+run with the `-O` option, the `assert` statement is ignored, and the assignment
+expression is not executed. This can lead to unexpected behavior.
+
+For example, replace
+
+```python
+assert (result := foo()) is not None
+```
+
+with
+
+```python
+result = foo()
+assert result is not None
+```
+
 ### RUF020 `typing.Never | T` is equivalent to `T`
 
 Checks for `typing.Never` and `typing.NoReturn` in union types, which is
