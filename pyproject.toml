@@ -1,0 +1,72 @@
+[tool.poetry]
+name = "flake8-ruff"
+version = "0.1.0"
+description = "A Flake8 plugin that implements miscellaneous checks from Ruff."
+license = "MIT"
+authors = ["Tom Kuson <mail@tjkuson.me>"]
+readme = "README.md"
+repository = "https://github.com/tjkuson/flake8-ruff"
+keywords = [
+    "flake8",
+    "ruff",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: Flake8",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Typing :: Typed",
+]
+packages = [
+    { include = "flake8_ruff", from = "src" },
+]
+
+[tool.poetry.dependencies]
+python = ">=3.9"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.2.1"
+pytest = "^8.0.0"
+mypy = "*"
+
+[tool.mypy]
+mypy_path = "src/"
+strict = true
+
+[tool.ruff]
+preview = true
+
+[tool.ruff.lint]
+extend-select = [
+    "I",
+    "UP",
+    "B",
+    "A",
+    "C4",
+    "PIE",
+    "PYI",
+    "SIM",
+    "TCH",
+    "PGH",
+    "PL",
+    "PERF",
+    "FURB",
+    "RUF",
+]
+ignore = [
+    "PLR0916",  # A high number of Boolean expressions are kind of unavoidable here.
+]
+
+[tool.ruff.lint.isort]
+required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.lint.flake8-type-checking]
+strict = true
+
+[tool.poetry.plugins."flake8.extension"]
+RUF = "flake8_ruff:Plugin"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
