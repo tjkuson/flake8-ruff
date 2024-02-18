@@ -39,6 +39,7 @@ class Visitor(ast.NodeVisitor):
         self._stack.pop()
 
     def visit_FormattedValue(self, node: ast.FormattedValue) -> None:
+        # TODO(tom): Determine why col_offset is different on Python 3.12
         if (
             node.conversion == -1
             and isinstance(node.value, ast.Call)
@@ -98,7 +99,6 @@ class Visitor(ast.NodeVisitor):
 
     def visit_Assert(self, node: ast.Assert) -> None:
         if isinstance(node.test, ast.NamedExpr):
-            # TODO(tom): Determine why col_offset is different on Python 3.12
             self.errors.append((
                 node.lineno,
                 node.col_offset,
