@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import sys
 import textwrap
 
 from flake8_ruff import Plugin
@@ -15,24 +16,33 @@ def test_ruf010_ascii() -> None:
     src = """\
     f"abc {ascii(bar)} xyz"
     """
-    expected_msg = "RUF010 Use explicit conversion flag"
-    assert expected_msg == run(src)[0][2]
+    expected = [(1, 6, "RUF010 Use explicit conversion flag")]
+    if sys.version_info >= (3, 12):
+        assert expected == run(src)
+    else:
+        assert expected[0][2] == run(src)[0][2]
 
 
 def test_ruf010_repr() -> None:
     src = """\
     f"abc {repr(123)} xyz"
     """
-    expected_msg = "RUF010 Use explicit conversion flag"
-    assert expected_msg == run(src)[0][2]
+    expected = [(1, 6, "RUF010 Use explicit conversion flag")]
+    if sys.version_info >= (3, 12):
+        assert expected == run(src)
+    else:
+        assert expected[0][2] == run(src)[0][2]
 
 
 def test_ruf010_str() -> None:
     src = """\
     f"abc {(str(123))} xyz"
     """
-    expected_msg = "RUF010 Use explicit conversion flag"
-    assert expected_msg == run(src)[0][2]
+    expected = [(1, 6, "RUF010 Use explicit conversion flag")]
+    if sys.version_info >= (3, 12):
+        assert expected == run(src)
+    else:
+        assert expected[0][2] == run(src)[0][2]
 
 
 def test_ruf010_set() -> None:
