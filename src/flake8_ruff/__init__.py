@@ -39,7 +39,6 @@ class Visitor(ast.NodeVisitor):
         self._stack.pop()
 
     def visit_FormattedValue(self, node: ast.FormattedValue) -> None:
-        # TODO(tom): Determine why col_offset is different on Python 3.12
         if (
             node.conversion == -1
             and isinstance(node.value, ast.Call)
@@ -51,6 +50,8 @@ class Visitor(ast.NodeVisitor):
             and isinstance(node.value.func, ast.Name)
             and node.value.func.id in {"ascii", "repr", "str"}
         ):
+            # On 3.12, the node position matches the actual curly braces rather than
+            # the start of the f-string.
             self.errors.append((
                 node.lineno,
                 node.col_offset,
