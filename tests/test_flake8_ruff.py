@@ -11,6 +11,46 @@ def run(source: str) -> list[tuple[int, int, str]]:
     return [(line, col, msg) for (line, col, msg, type_) in Plugin(tree).run()]
 
 
+def test_ruf010_ascii() -> None:
+    src = """\
+    f"abc {ascii(bar)} xyz"
+    """
+    expected_msg = "RUF010 Use explicit conversion flag"
+    assert expected_msg == run(src)[0][2]
+
+
+def test_ruf010_repr() -> None:
+    src = """\
+    f"abc {repr(123)} xyz"
+    """
+    expected_msg = "RUF010 Use explicit conversion flag"
+    assert expected_msg == run(src)[0][2]
+
+
+def test_ruf010_str() -> None:
+    src = """\
+    f"abc {(str(123))} xyz"
+    """
+    expected_msg = "RUF010 Use explicit conversion flag"
+    assert expected_msg == run(src)[0][2]
+
+
+def test_ruf010_set() -> None:
+    src = """\
+    f"abc {str({})} xyz"
+    """
+    expected: list[tuple[int, int, str]] = []
+    assert expected == run(src)
+
+
+def test_ruf010_dict() -> None:
+    src = """\
+    f"abc {str({k: v for k, v in enumerate(foo)})} xyz"
+    """
+    expected: list[tuple[int, int, str]] = []
+    assert expected == run(src)
+
+
 def test_ruf018() -> None:
     src = """\
     assert (x := 1), "message"
