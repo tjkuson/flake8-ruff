@@ -24,6 +24,31 @@ to enable the plugin.
 
 ## Checks
 
+### RUF010 Use explicit conversion flag
+
+Checks for `str()`, `repr()`, and `ascii()` as explicit conversions within
+f-strings.
+
+For example, replace
+
+```python
+f"{ascii(foo)}, {repr(bar)}, {str(baz)}"
+```
+
+with
+
+```python
+f"{foo!a}, {bar!r}, {baz!s}"
+```
+
+or, often (such as where `__str__` and `__format__` are equivalent),
+
+```python
+f"{foo!a}, {bar!r}, {baz}"
+```
+
+Derived from [explicit-f-string-type-conversion (RUF010)](https://docs.astral.sh/ruff/rules/explicit-f-string-type-conversion/).
+
 ### RUF018 Avoid assignment expressions in `assert` statements
 
 Checks for named assignment expressions in `assert` statements. When Python is

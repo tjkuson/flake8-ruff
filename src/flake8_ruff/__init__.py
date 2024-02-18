@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import typing
 
+RUF010 = "RUF010 Use explicit conversion flag"
 RUF018 = "RUF018 Avoid assignment expressions in assert statements"
 RUF020 = "RUF020 {} | T is equivalent to T"
 RUF025 = "RUF025 Unnecessary dict comprehension for iterable; use dict.fromkeys instead"
@@ -36,6 +37,24 @@ class Visitor(ast.NodeVisitor):
         self._stack.append(node)
         super().visit(node)
         self._stack.pop()
+
+    def visit_FormattedValue(self, node: ast.FormattedValue) -> None:
+        if (
+            node.conversion == -1
+            and isinstance(node.value, ast.Call)
+            and not node.value.keywords
+            and len(node.value.args) == 1
+            and not isinstance(
+                node.value.args[0], (ast.Dict, ast.DictComp, ast.Set, ast.SetComp)
+            )
+            and isinstance(node.value.func, ast.Name)
+            and node.value.func.id in {"ascii", "repr", "str"}
+        ):
+            self.errors.append((
+                node.lineno,
+                node.col_offset,
+                RUF010,
+            ))
 
     def visit_DictComp(self, node: ast.DictComp) -> None:
         if (
@@ -79,6 +98,7 @@ class Visitor(ast.NodeVisitor):
 
     def visit_Assert(self, node: ast.Assert) -> None:
         if isinstance(node.test, ast.NamedExpr):
+            # TODO(tom): Determine why col_offset is different on Python 3.12
             self.errors.append((
                 node.lineno,
                 node.col_offset,
