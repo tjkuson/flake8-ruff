@@ -2,14 +2,15 @@
 
 [![image](https://img.shields.io/pypi/v/flake8-ruff.svg)](https://pypi.python.org/pypi/flake8-ruff)
 
-A Flake8 plugin that implements miscellaneous checks from [Ruff](https://github.com/astral-sh/ruff).
+A Flake8 plugin that implements miscellaneous checks from
+[Ruff](https://github.com/astral-sh/ruff).
 
 Specifically, this plugin implements checks that are under the `RUF` category
 (the rules that do not have a direct equivalent in Flake8).
 
 ## Requirements
 
-Python 3.9 to 3.12 is supported.
+Python 3.9 and newer is supported.
 
 ## Installation
 
@@ -19,8 +20,9 @@ Install from PyPI. For example,
 pip install flake8-ruff
 ```
 
-Then follow the instructions on the [Flake8 documentation](https://flake8.pycqa.org/en/latest/index.html)
-to enable the plugin.
+Then follow the instructions on the
+[Flake8 documentation](https://flake8.pycqa.org/en/latest/index.html) to enable
+the plugin.
 
 ## Checks
 
@@ -47,7 +49,8 @@ or, often (such as where `__str__` and `__format__` are equivalent),
 f"{foo!a}, {bar!r}, {baz}"
 ```
 
-Derived from [explicit-f-string-type-conversion (RUF010)](https://docs.astral.sh/ruff/rules/explicit-f-string-type-conversion/).
+Derived from
+[explicit-f-string-type-conversion (RUF010)](https://docs.astral.sh/ruff/rules/explicit-f-string-type-conversion/).
 
 ### RUF018 Avoid assignment expressions in `assert` statements
 
@@ -68,7 +71,8 @@ result = foo()
 assert result is not None
 ```
 
-Derived from [assignment-in-assert (RUF018)](https://docs.astral.sh/ruff/rules/assignment-in-assert/).
+Derived from
+[assignment-in-assert (RUF018)](https://docs.astral.sh/ruff/rules/assignment-in-assert/).
 
 ### RUF020 `typing.Never | T` is equivalent to `T`
 
@@ -87,7 +91,8 @@ with
 int | None
 ```
 
-Derived from [never-union (RUF020)](https://docs.astral.sh/ruff/rules/never-union/).
+Derived from
+[never-union (RUF020)](https://docs.astral.sh/ruff/rules/never-union/).
 
 ### RUF025 Unnecessary dict comprehension for iterable; use `dict.fromkeys` instead
 
@@ -118,4 +123,5 @@ with
 dict.fromkeys(keys)
 ```
 
-Derived from [unnecessary-dict-comprehension-for-iterable (RUF025)](https://docs.astral.sh/ruff/rules/unnecessary-dict-comprehension-for-iterable/).
+Derived from
+[unnecessary-dict-comprehension-for-iterable (RUF025)](https://docs.astral.sh/ruff/rules/unnecessary-dict-comprehension-for-iterable/).

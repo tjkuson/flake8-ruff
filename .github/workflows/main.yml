@@ -5,59 +5,141 @@ on:
     branches:
       - main
   pull_request:
-    branches:
-      - main
 
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
+  pre-commit:
+    name: pre-commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install pre-commit
+        run: uv tool install pre-commit
+      - name: Cache pre-commit
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+      - name: Run pre-commit
+        run: |
+          echo '```console' > "$GITHUB_STEP_SUMMARY"
+          pre-commit run --all-files --show-diff-on-failure --color=always | \
+            tee >(sed -E 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})*)?[mGK]//g' >> "$GITHUB_STEP_SUMMARY") >&1
+          exit_code="${PIPESTATUS[0]}"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          exit "$exit_code"
   tests:
-    name: Test on Python ${{ matrix.python-version }}
+    name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version:
-          - 3.9
-          - "3.10"
-          - "3.11"
-          - "3.12"
-    defaults:
-      run:
-        shell: bash
+          - '3.9'
+          - '3.10'
+          - '3.11'
+          - '3.12'
+          - '3.13'
+          - '3.14'
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Get full Python version
-        id: full-python-version
-        run: |
-          echo "version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")" >> $GITHUB_OUTPUT
-      - name: Bootstrap Poetry
-        run: |
-          curl -sL https://install.python-poetry.org | python - -y ${{ matrix.bootstrap-args }}
-      - name: Update PATH
-        run: |
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-      - name: Configure poetry
-        run: |
-          poetry config virtualenvs.in-project true
-      - name: Set up cache
-        uses: actions/cache@v3
-        id: cache
+      - name: Run pytest for Python ${{ matrix.python-version }}
+        run: uv run --locked coverage run --module pytest
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
         with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
-      - name: Ensure cache is healthy
-        if: steps.cache.outputs.cache-hit == 'true'
-        run: |
-          timeout 10s poetry run pip --version || rm -rf .venv
+          name: coverage-data-${{ matrix.python-version }}
+          path: .coverage.*
+          include-hidden-files: true
+          if-no-files-found: error
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-24.04
+    needs: tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
       - name: Install dependencies
-        run: poetry install --with dev
+        run: uv tool install 'coverage[toml]'
+      - name: Download coverage data
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ github.workspace }}
+          pattern: coverage-data-*
+          merge-multiple: true
+      - name: Combine coverage and report
+        run: |
+          coverage combine
+          coverage html --skip-covered --skip-empty
+          coverage report --fail-under=100
+          echo '## Coverage summary' >> "$GITHUB_STEP_SUMMARY"
+          coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload HTML report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report
+          path: htmlcov
+  mypy:
+    name: Run type-checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v6
       - name: Run mypy
-        run: poetry run mypy src
-      - name: Run pytest
-        run: poetry run pytest -v
+        run: uv run --locked mypy src tests
+  build:
+    runs-on: ubuntu-latest
+    needs:
+      - mypy
+      - coverage
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Build
+        run: uv build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ github.sha }}
+          path: dist
+          retention-days: 5
+  deploy:
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    if: github.event_name == 'release'
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-${{ github.sha }}
+          path: dist
+      - name: Upload to GH Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release upload "${{ github.ref_name }}" dist/*.tar.gz
+          gh release upload "${{ github.ref_name }}" dist/*.whl
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
