@@ -1,72 +1,77 @@
-[tool.poetry]
+[build-system]
+build-backend = "hatchling.build"
+
+requires = [ "hatchling" ]
+
+[project]
 name = "flake8-ruff"
-version = "0.3.0"
+version = "0.3.1"
 description = "A Flake8 plugin that implements miscellaneous checks from Ruff."
-license = "MIT"
-authors = ["Tom Kuson <mail@tjkuson.me>"]
 readme = "README.md"
-repository = "https://github.com/tjkuson/flake8-ruff"
 keywords = [
-    "flake8",
-    "ruff",
+  "flake8",
+  "ruff",
 ]
+license = "MIT"
+authors = [ { name = "Tom Kuson", email = "mail@tjkuson.me" } ]
+requires-python = ">=3.9"
 classifiers = [
-    "Development Status :: 4 - Beta",
-    "Framework :: Flake8",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Natural Language :: English",
-    "Typing :: Typed",
-]
-packages = [
-    { include = "flake8_ruff", from = "src" },
+  "Development Status :: 4 - Beta",
+  "Framework :: Flake8",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Natural Language :: English",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
 ]
 
-[tool.poetry.dependencies]
-python = ">=3.9"
+urls.Repository = "https://github.com/tjkuson/flake8-ruff"
+entry-points."flake8.extension".RUF = "flake8_ruff:Plugin"
 
-[tool.poetry.group.dev.dependencies]
-ruff = "^0.2.1"
-pytest = "^8.0.0"
-mypy = "*"
+[dependency-groups]
+dev = [
+  "coverage[toml]~=7.10",
+  "mypy~=1.17",
+  "pytest~=8.0",
+  "pytest-randomly~=3.16",
+]
+
+[tool.ruff]
+lint.extend-select = [
+  "A",
+  "B",
+  "C4",
+  "FURB",
+  "I",
+  "PERF",
+  "PGH",
+  "PIE",
+  "PL",
+  "PYI",
+  "RUF",
+  "SIM",
+  "TCH",
+  "UP",
+]
+lint.ignore = [
+  "PLR0916", # A high number of Boolean expressions are kind of unavoidable here.
+]
+lint.flake8-type-checking.strict = true
+lint.isort.required-imports = [ "from __future__ import annotations" ]
+
+[tool.coverage.run]
+branch = true
+parallel = true
+source = [ "src" ]
+
+[tool.coverage.report]
+fail_under = 100
 
 [tool.mypy]
 mypy_path = "src/"
 strict = true
-
-[tool.ruff]
-preview = true
-
-[tool.ruff.lint]
-extend-select = [
-    "I",
-    "UP",
-    "B",
-    "A",
-    "C4",
-    "PIE",
-    "PYI",
-    "SIM",
-    "TCH",
-    "PGH",
-    "PL",
-    "PERF",
-    "FURB",
-    "RUF",
-]
-ignore = [
-    "PLR0916",  # A high number of Boolean expressions are kind of unavoidable here.
-]
-
-[tool.ruff.lint.isort]
-required-imports = ["from __future__ import annotations"]
-
-[tool.ruff.lint.flake8-type-checking]
-strict = true
-
-[tool.poetry.plugins."flake8.extension"]
-RUF = "flake8_ruff:Plugin"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"

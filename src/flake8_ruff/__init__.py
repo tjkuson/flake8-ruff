@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import typing
+from importlib.metadata import version
 
 RUF010 = "RUF010 Use explicit conversion flag"
 RUF018 = "RUF018 Avoid assignment expressions in assert statements"
@@ -13,16 +14,12 @@ def _is_typing_object(
     node: ast.AST,
     name: str,
 ) -> bool:
-    if isinstance(node, ast.Name) and node.id == name:
-        return True
-    if (
+    return (isinstance(node, ast.Name) and node.id == name) or (
         isinstance(node, ast.Attribute)
         and node.attr == name
         and isinstance(node.value, ast.Name)
         and node.value.id in {"typing", "typing_extensions"}
-    ):
-        return True
-    return False
+    )
 
 
 class Visitor(ast.NodeVisitor):
@@ -52,11 +49,13 @@ class Visitor(ast.NodeVisitor):
         ):
             # On 3.12, the node position matches the actual curly braces rather than
             # the start of the f-string.
-            self.errors.append((
-                node.lineno,
-                node.col_offset,
-                RUF010,
-            ))
+            self.errors.append(
+                (
+                    node.lineno,
+                    node.col_offset,
+                    RUF010,
+                )
+            )
 
     def visit_DictComp(self, node: ast.DictComp) -> None:
         if (
@@ -68,22 +67,26 @@ class Visitor(ast.NodeVisitor):
             and isinstance(node.generators[0].target, ast.Name)
             and node.key.id == node.generators[0].target.id
         ):
-            self.errors.append((
-                node.lineno,
-                node.col_offset,
-                RUF025,
-            ))
+            self.errors.append(
+                (
+                    node.lineno,
+                    node.col_offset,
+                    RUF025,
+                )
+            )
 
     def visit_BinOp(self, node: ast.BinOp) -> None:
         if isinstance(node.op, ast.BitOr):
             for never_like in "Never", "NoReturn":
                 for side in node.left, node.right:
                     if _is_typing_object(side, never_like):
-                        self.errors.append((
-                            node.lineno,
-                            side.col_offset,
-                            RUF020.format(never_like),
-                        ))
+                        self.errors.append(
+                            (
+                                node.lineno,
+                                side.col_offset,
+                                RUF020.format(never_like),
+                            )
+                        )
             if isinstance(node.left, ast.BinOp):
                 self.visit_BinOp(node.left)
 
@@ -92,23 +95,28 @@ class Visitor(ast.NodeVisitor):
             for elt in node.slice.elts:
                 for never_like in "Never", "NoReturn":
                     if _is_typing_object(elt, never_like):
-                        self.errors.append((
-                            node.lineno,
-                            elt.col_offset,
-                            RUF020.format(never_like),
-                        ))
+                        self.errors.append(
+                            (
+                                node.lineno,
+                                elt.col_offset,
+                                RUF020.format(never_like),
+                            )
+                        )
 
     def visit_Assert(self, node: ast.Assert) -> None:
         if isinstance(node.test, ast.NamedExpr):
-            self.errors.append((
-                node.lineno,
-                node.col_offset,
-                RUF018,
-            ))
+            self.errors.append(
+                (
+                    node.lineno,
+                    node.col_offset,
+                    RUF018,
+                )
+            )
 
 
 class Plugin:
     name = "flake8-ruff"
+    version = version("flake8-ruff")
 
     def __init__(self, tree: ast.AST) -> None:
         self._tree = tree

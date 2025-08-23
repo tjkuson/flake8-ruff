@@ -69,6 +69,14 @@ def test_ruf018() -> None:
     assert expected == run(src)
 
 
+def test_ruf018_no_assign() -> None:
+    src = """\
+    assert x == 1, "message"
+    """
+    expected: list[tuple[int, int, str]] = []
+    assert expected == run(src)
+
+
 def test_ruf020_never() -> None:
     src = """\
     from typing import Never
@@ -105,6 +113,15 @@ def test_ruf020_no_return() -> None:
     assert expected == run(src)
 
 
+def test_ruf020_no_return_invalid_op() -> None:
+    src = """\
+    from typing import NoReturn
+    foo: None & NoReturn
+    """
+    expected: list[tuple[int, int, str]] = []
+    assert expected == run(src)
+
+
 def test_ruf020_typing_no_return() -> None:
     src = """\
     import typing
@@ -138,6 +155,15 @@ def test_ruf020_union_no_return() -> None:
     def foo() -> Union[str, int, NoReturn]: ...
     """
     expected = [(2, 29, "RUF020 NoReturn | T is equivalent to T")]
+    assert expected == run(src)
+
+
+def test_ruf020_union_no_subscript() -> None:
+    src = """\
+    from typing import NoReturn
+    def foo() -> tuple[str, int, NoReturn]: ...
+    """
+    expected: list[tuple[int, int, str]] = []
     assert expected == run(src)
 
 
